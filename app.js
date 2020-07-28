@@ -116,9 +116,9 @@ function addDepts(){
     inquirer.prompt([{
         message: 'Enter Department Name you want to add',
         name: 'newdept',
-      }]).then(answer => {
+      }]).then(answers => {
         connection.query(
-          `INSERT INTO department (name) values (${answer.newdept})`,  
+          `INSERT INTO department (name) values (${answers.newdept})`,  
           (err, newDeptRow) => {
             if (err) throw err;
             console.table(newDeptRow);
@@ -131,11 +131,66 @@ function addDepts(){
 };
 
 function addRoles(){
+    inquirer.prompt([
+        {
+          name: 'title',
+          message: "Enter the Role Name you want to add.",
+        },
+        {
+          name: 'salary',
+          type: 'number',
+          message: "What is the salary?"
+        },
+        {
+            name: 'department_id',
+            type: 'number',
+            message: "What is the department ID this role belongs to?"
+          }
+      ]).then(answers => {
+        connection.query(
+          `INSERT INTO role (title,salary,department_id) values (${answers.title},${answers.salary},${answers.department_id})`,
+          (err, newRoleRow) => {
+            if (err) throw err
+            console.table(newRoleRow)
+            initialPrompts()
+          }
+        )
+      })
 
 
 };
 
 function addEmployees(){
+    inquirer.prompt([
+        {
+          name: 'first_name',
+          message: "Enter the First Name of the employee you want to add.",
+        },
+        {
+          name: 'last_name',
+          message: "Enter the Last Name of the employee you want to add."
+        },
+        {
+            name: 'role_id',
+            type: 'number',
+            message: "What is role ID this role belongs to?"
+          },
+          {
+              name: 'manager_id',
+              type: 'number',
+              message: "What is the Manager ID this role belongs to?"
+            }
+      ]).then(answers => {
+        connection.query(
+          `INSERT INTO employee (first_name,last_name,role_id,manager_id) values (${answers.first_name},${answers.last_name},${answers.role_id},${answers.manager_id})`,
+          (err, newEmplRow) => {
+            if (err) throw err
+            console.table(newEmplRow)
+            initialPrompts()
+          }
+        )
+      })
+
 
 
 };
