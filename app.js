@@ -127,7 +127,10 @@ function addRoles() {
         }
       })
     } else {
+      // connection.query("SELECT NAME FROM department",(err, deptName){
+      //     if (err) throw err;
 
+      // })
       inquirer.prompt([
         {
           name: 'title',
@@ -141,6 +144,8 @@ function addRoles() {
         {
           name: 'department_id',
           type: 'number',
+          // type: 'list',
+          // choices:
           message: "What is the department ID this role belongs to?"
         }
       ]).then(answers => {
@@ -188,7 +193,15 @@ function addRoles() {
        }
      })
    } else {
+  //   connection.query("SELECT title FROM role",(err, title){
+  //     if (err) throw err;
 
+  // })
+
+//   connection.query("SELECT last_name FROM employee",(err, deptName){
+//     if (err) throw err;
+
+// })
 
    inquirer.prompt([
        {
@@ -268,7 +281,36 @@ function addRoles() {
  };
 
  function updEmpRoles() {
+  //  connection.query('select first_name, last_name from employee',(err, empchg)=>{
+  //    if (err) throw err;
+  //  })
+  inquirer.prompt([
+    {
+      name: 'emplchg',
+      type: 'list',
+      message: "Which Employee do you want to update?",
+      choices: ['Yes', 'No']
+    }]).then (answers=>{
 
+
+    });
+
+//  connection.query('select title from role',(err, rolechg)=>{
+  //    if (err) throw err;
+  //  })
+
+    inquirer.prompt([
+      {
+        name: "rolechg",
+        type: "list",
+        message: "Which Role are we changing to?",
+        choices: ['Yes','No']
+      }
+    ]).then (answers2 =>{
+      connection.query('UPDATE employee set title = where id = ',(err, update)=>{
+         if (err) throw err;
+      })
+    })
 
  };
 
