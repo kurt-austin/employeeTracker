@@ -103,10 +103,10 @@ function addDepts() {
 };
 
 function addRoles() {
-  connection.query('SELECT COUNT (*) FROM department', (err, countDept) => {
+  connection.query('SELECT COUNT (*) as total FROM department', (err, countDept) => {
     if (err) throw err;
-    if (countDept === 0) {
-      console.log("There are no departments");
+    if (countDept[0].total === 0) {
+      console.log("There are no departments, please add department first.");
       inquirer.prompt([
         {
           name: 'add_dept',
@@ -156,13 +156,13 @@ function addRoles() {
 
   }
  function addEmployees() {
-   connection.query('SELECT COUNT (*) FROM role', (err, countRole) => {
+   connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
      if (err) throw err;
 
-   
+     
 
-   if (countRole === 0) {
-     console.log("There are no Roles")
+   if (countRole[0].total === 0) {
+     console.log("There are no Roles, please add Role first.")
 
      inquirer.prompt([
        {
