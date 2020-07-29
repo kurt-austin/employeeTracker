@@ -1,6 +1,10 @@
+// require Node packages MySQL and Inquirer
+
 const mysql = require('mysql')
 const inquirer = require('inquirer')
 let tableName = ' ';
+
+// Establish Database Connection and test.
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -17,16 +21,10 @@ connection.connect(err => {
 })
 
 
-
-// Build a command-line application that at a minimum allows the user to:
-
-//   * Add departments, roles, employees
-
-//   * View departments, roles, employees
-
 //   * Update employee roles
 
 
+// Initial prompt of what the user wants to do
 
 function initialPrompts() {
 
@@ -80,6 +78,8 @@ function initialPrompts() {
 
 };
 
+// Add Departments.
+
 
 function addDepts() {
   inquirer.prompt([{
@@ -101,6 +101,8 @@ function addDepts() {
   })
 
 };
+
+// Adding roles with checking to see if Departments exist first with the option of adding a Department.
 
 function addRoles() {
   connection.query('SELECT COUNT (*) as total FROM department', (err, countDept) => {
@@ -155,6 +157,9 @@ function addRoles() {
     }});
 
   }
+
+  // Add Employees, checking if Roles exist.  If they do not prompt to add Role before adding Employees.
+
  function addEmployees() {
    connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
      if (err) throw err;
@@ -221,6 +226,7 @@ function addRoles() {
     }});
  };
 
+// View function table name passed from call to console log the results or with the option to add or seed the data.
 
  function view(tableName) {
    connection.query('SELECT COUNT (*) as total FROM '+ tableName +"", (err, count) => {
