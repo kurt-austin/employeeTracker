@@ -26,16 +26,6 @@ connection.connect(err => {
 
 //   * Update employee roles
 
-// Bonus points if you're able to:
-
-//   * Update employee managers
-
-//   * View employees by manager
-
-//   * Delete departments, roles, and employees
-
-//   * View the total utilized budget of a department -- ie the combined salaries of all employees in that department
-
 
 
 function initialPrompts() {
@@ -53,68 +43,35 @@ function initialPrompts() {
         'View Roles',
         'View Employees',
         'Update Employee Roles',
-        // 'Update Employee Managers',
-        // 'View Employees by Manager',
-        // 'Delete Departments',
-        // 'Delete Roles',
-        // 'Delete Employees',
-        // 'View Budget by Department',
-        'EXIT',
+         'EXIT',
       ]
     }
   ]).then(answer => {
     switch (answer.action) {
       case 'Add Departments':
-        // let tableName = 'department';
-        // addDepts(tableName);
         addDepts();
         break;
       case 'Add Roles':
-        // let tableName = 'role';
-        // addRoles(tableName);
         addRoles();
         break;
       case 'Add Employees':
-        // let tableName = 'employee';
-        // addEmployees(tableName);
         addEmployees();
         break;
       case 'View Departments':
-        // let tableName = 'department';
-        // viewDepts(tableName);
-        viewDepts();
+        tableName = 'department';
+        view(tableName);
         break;
       case 'View Roles':
-        // let tableName = 'role';
-        // viewRoles(tableName);
-        viewRoles();
+        tableName = 'role';
+        view(tableName);
         break;
       case 'View Employees':
-        // let tableName = 'employee';
-        // viewEmployees();
-        viewEmployees();
+        tableName = 'employee';
+        view(tableName);
         break;
       case 'Update Employee Roles':
         updEmpRoles();
         break;
-      // case 'Update Employee Managers':
-      //     updEmpMgrs()
-      // break
-      // case 'View Employees by Manager':
-      //     viewEmpbyMgrs()
-      // break
-      // case 'Delete Departments':
-      //     delDepts()
-      // break
-      // case 'Delete Roles':
-      //     delRoles()
-      // break
-      // case 'Delete Employees':
-      //     delEmp()
-      // break
-      // case 'View Budget by Department':
-      //     viewBudget()
-      // break
       default:
         connection.end()
         process.exit()
@@ -265,24 +222,28 @@ function addRoles() {
  };
 
 
- function viewDepts() {
-   connection.query('SELECT COUNT (*) as total FROM department', (err, countDept) => {
+ function view(tableName) {
+   connection.query('SELECT COUNT (*) as total FROM '+ tableName +"", (err, count) => {
      if (err) throw err;
-   console.log(countDept[0].total);
-   
-   if (countDept[0].total === 0) {
-     console.log("There are no departments");
+   if (count[0].total === 0) {
+     console.log("There are no "+ tableName + "s");
      inquirer.prompt([
        {
-         name: 'add_dept',
+         name: 'add',
          type: 'list',
-         message: 'Do you want to add a Department?',
+         message: "Do you want to add a "+ tableName + "?",
          choices: ['Yes', 'No']
        }
      ]).then(answers => {
-       switch (answers.add_dept) {
+       switch (answers.add) {
          case 'Yes':
-           addDepts();
+           if (tableName==="role"){
+             addRoles();
+           } else if (tableName==="department"){
+             addDepts();
+           } else {
+             addEmployees();
+           };
            break;
          case 'No':
            initialPrompts();
@@ -290,121 +251,18 @@ function addRoles() {
        }
      })
    } else {
-   connection.query('SELECT id, name FROM department',
-     (err, viewDepts) => {
+   connection.query("SELECT * FROM "+ tableName +"",
+     (err, viewData) => {
        if (err) throw err;
-       console.table(viewDepts);
+       console.table(viewData);
        initialPrompts();
     }
    )
  }});
  };
 
-
- function viewRoles() {
-   connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
-     if (err) throw err;
-
-
-   if (countRole[0].total === 0) {
-     console.log("There are no roles");
-     inquirer.prompt([
-       {
-         name: 'add_role',
-         type: 'list',
-         message: 'Do you want to add a Role?',
-         choices: ['Yes', 'No']
-       }
-     ]).then(answers => {
-       switch (answers.add_role) {
-         case 'Yes':
-           addRoles();
-           break;
-         case 'No':
-           initialPrompts();
-           break;
-       }
-     })
-   } else {
-   connection.query('SELECT id, title, salary, department_id FROM role',
-     (err, viewRoles) => {
-       if (err) throw err;
-       console.table(viewRoles);
-       initialPrompts();
-     }
-   )
- }   });
- };
-
-
- function viewEmployees() {
-   connection.query('SELECT COUNT (*) as total FROM employee', (err, countEmp) => {
-     if (err) throw err;
-
-   
-   if (countEmp[0].total === 0) {
-     console.log("There are no Employees");
-     inquirer.prompt([
-       {
-         name: 'add_emp',
-         type: 'list',
-         message: 'Do you want to add an Employee?',
-         choices: ['Yes', 'No']
-       }
-     ]).then(answers => {
-       switch (answers.add_emp) {
-         case 'Yes':
-           addEmployees();
-           break;
-         case 'No':
-           initialPrompts();
-           break;
-       }
-     })
-   } else {
-   connection.query('SELECT id, first_name, last_name, role_id, manager_id FROM employee',
-     (err, viewEmp) => {
-       if (err) throw err;
-       console.table(viewEmp);
-       initialPrompts();
-     }
-   )
- }});
-};
-
  function updEmpRoles() {
 
 
  };
 
-
-// function updEmpMgrs(){
-
-// };
-
-// function viewEmpbyMgrs(){
-
-
-// };
-
-// function delEmp(){
-
-
-// };
-
-
-// function delRoles(){
-
-
-// };
-
-// function delDepts(){
-
-
-// };
-
-
-// function viewBudget(){
-
-
-// };
