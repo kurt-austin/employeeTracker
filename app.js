@@ -127,10 +127,9 @@ function addRoles() {
         }
       })
     } else {
-      // connection.query("SELECT NAME FROM department",(err, deptName){
-      //     if (err) throw err;
-
-      // })
+       connection.query("SELECT name FROM department",(err, deptName)=>{
+           if (err) throw err;
+       
       inquirer.prompt([
         {
           name: 'title',
@@ -142,25 +141,33 @@ function addRoles() {
           message: "What is the salary?"
         },
         {
-          name: 'department_id',
-          type: 'number',
-          // type: 'list',
-          // choices:
-          message: "What is the department ID this role belongs to?"
+          name: 'name',
+          type: 'list',
+          choices: function (){
+            var choiceArray =[];
+            for (var i = 0; i < deptName.length; i++){
+              choiceArray.push(deptName[i].name);
+            }
+           return choiceArray
+          },
+          message: "What is the department this role belongs to?"
         }
       ]).then(answers => {
-        connection.query(
-          "INSERT INTO role (title,salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + `${answers.department_id}` + "')",
-          (err, newRoleRow) => {
-            if (err) throw err
-            console.table(newRoleRow)
-            initialPrompts()
-          }
-        )
+      connection.query("SELECT id from department WHERE name='"+`${answers.name}`+"'",(err, deptId)=>{
+           if (err) throw err;
+            
+         connection.query(
+           "INSERT INTO role (title,salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + deptId[0].id + "')",
+           (err, newRoleRow) => {
+             if (err) throw err
+             console.table(newRoleRow)
+             initialPrompts()
+           }
+         )
+        });
       })
-
+    })
     }});
-
   }
 
   // Add Employees, checking if Roles exist.  If they do not prompt to add Role before adding Employees.
