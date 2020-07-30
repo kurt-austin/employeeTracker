@@ -41,7 +41,7 @@ function initialPrompts() {
         'View Roles',
         'View Employees',
         'Update Employee Roles',
-         'EXIT',
+        'EXIT',
       ]
     }
   ]).then(answer => {
@@ -127,197 +127,226 @@ function addRoles() {
         }
       })
     } else {
-       connection.query("SELECT name FROM department",(err, deptName)=>{
-           if (err) throw err;
-       
+      connection.query("SELECT name FROM department", (err, deptName) => {
+        if (err) throw err;
+
+        inquirer.prompt([
+          {
+            name: 'title',
+            message: "Enter the Role Name you want to add.",
+          },
+          {
+            name: 'salary',
+            type: 'number',
+            message: "What is the salary?"
+          },
+          {
+            name: 'name',
+            type: 'list',
+            choices: function () {
+              var choiceArray = [];
+              for (var i = 0; i < deptName.length; i++) {
+                choiceArray.push(deptName[i].name);
+              }
+              return choiceArray
+            },
+            message: "What is the department this role belongs to?"
+          }
+        ]).then(answers => {
+          connection.query("SELECT id from department WHERE name='" + `${answers.name}` + "'", (err, deptId) => {
+            if (err) throw err;
+
+            connection.query(
+              "INSERT INTO role (title,salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + deptId[0].id + "')",
+              (err, newRoleRow) => {
+                if (err) throw err
+                console.table(newRoleRow)
+                initialPrompts()
+              }
+            )
+          });
+        })
+      })
+    }
+  });
+}
+
+// Add Employees, checking if Roles exist.  If they do not prompt to add Role before adding Employees.
+
+function addEmployees() {
+  connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
+    if (err) throw err;
+
+
+
+    if (countRole[0].total === 0) {
+      console.log("There are no Roles, please add Role first.")
+
       inquirer.prompt([
         {
-          name: 'title',
-          message: "Enter the Role Name you want to add.",
-        },
-        {
-          name: 'salary',
-          type: 'number',
-          message: "What is the salary?"
-        },
-        {
-          name: 'name',
+          name: 'add_role',
           type: 'list',
-          choices: function (){
-            var choiceArray =[];
-            for (var i = 0; i < deptName.length; i++){
-              choiceArray.push(deptName[i].name);
-            }
-           return choiceArray
-          },
-          message: "What is the department this role belongs to?"
+          message: 'Do you want to add a Role?',
+          choices: ['Yes', 'No']
+
         }
       ]).then(answers => {
-      connection.query("SELECT id from department WHERE name='"+`${answers.name}`+"'",(err, deptId)=>{
-           if (err) throw err;
-            
-         connection.query(
-           "INSERT INTO role (title,salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + deptId[0].id + "')",
-           (err, newRoleRow) => {
-             if (err) throw err
-             console.table(newRoleRow)
-             initialPrompts()
-           }
-         )
-        });
+        switch (answers.add_role) {
+          case 'Yes':
+            addRoles();
+            break;
+          case 'No':
+            initialPrompts();
+            break;
+        }
       })
-    })
-    }});
-  }
+    } else {
+      connection.query("SELECT title FROM role", (err, title) => {
+        if (err) throw err;
 
-  // Add Employees, checking if Roles exist.  If they do not prompt to add Role before adding Employees.
+        inquirer.prompt([
+          {
+            name: 'first_name',
+            message: "Enter the First Name of the employee you want to add.",
+          },
+          {
+            name: 'last_name',
+            message: "Enter the Last Name of the employee you want to add."
+          },
+          {
+            name: 'title',
+            type: 'list',
+            choices: function () {
+              var choiceArray = [];
+              for (var i = 0; i < title.length; i++) {
+                choiceArray.push(title[i].title);
+              }
+              return choiceArray
+            },
+            message: "What role are we assiging to the employee?"
+          },
 
- function addEmployees() {
-   connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
-     if (err) throw err;
-
-     
-
-   if (countRole[0].total === 0) {
-     console.log("There are no Roles, please add Role first.")
-
-     inquirer.prompt([
-       {
-         name: 'add_role',
-         type: 'list',
-         message: 'Do you want to add a Role?',
-         choices: ['Yes', 'No']
-
-       }
-     ]).then(answers => {
-       switch (answers.add_role) {
-         case 'Yes':
-           addRoles();
-           break;
-         case 'No':
-           initialPrompts();
-           break;
-       }
-     })
-   } else {
-  //   connection.query("SELECT title FROM role",(err, title){
-  //     if (err) throw err;
-
-  // })
-
-//   connection.query("SELECT last_name FROM employee",(err, deptName){
-//     if (err) throw err;
-
-// })
-
-   inquirer.prompt([
-       {
-         name: 'first_name',
-         message: "Enter the First Name of the employee you want to add.",
-       },
-       {
-         name: 'last_name',
-         message: "Enter the Last Name of the employee you want to add."
-       },
-       {
-         name: 'role_id',
-         type: 'number',
-        //  type: 'list',
-         message: "What is role ID this role belongs to?",
-        //  choices:
-       },
-       {
-         name: 'manager_id',
-         type: 'number',
-        //  type: 'list',
-         message: "What is the Manager ID this role belongs to?",
-        //  choices:
-       }
-     ]).then(answers => {
-       connection.query(
-         "INSERT INTO employee (first_name,last_name,role_id,manager_id) values ('"+`${answers.first_name}`+"','"+`${answers.last_name}`+"','"+`${answers.role_id}`+"','"+`${answers.manager_id}`+"')",
-         (err, newEmplRow) => {
-           if (err) throw err
-           console.table(newEmplRow)
-           initialPrompts()
-         }
-       )
-     })
-    }});
- };
+          {
+            name: 'manager_id',
+            type: 'number',
+            message: "What is the Manager ID this role belongs to?",
+          }
+        ]).then(answers => {
+          connection.query("SELECT id from role WHERE title='" + `${answers.title}` + "'", (err, roleId) => {
+            if (err) throw err;
+            connection.query(
+              "INSERT INTO employee (first_name,last_name,role_id,manager_id) values ('" + `${answers.first_name}` + "','" + `${answers.last_name}` + "','" + roleId[0].id + "','" + `${answers.manager_id}` + "')",
+              (err, newEmplRow) => {
+                if (err) throw err
+                console.table(newEmplRow)
+                initialPrompts()
+              }
+            )
+          });
+        })
+      })
+    }
+  });
+};
 
 // View function table name passed from call to console log the results or with the option to add or seed the data.
 
- function view(tableName) {
-   connection.query('SELECT COUNT (*) as total FROM '+ tableName +"", (err, count) => {
-     if (err) throw err;
-   if (count[0].total === 0) {
-     console.log("There are no "+ tableName + "s");
-     inquirer.prompt([
-       {
-         name: 'add',
-         type: 'list',
-         message: "Do you want to add a "+ tableName + "?",
-         choices: ['Yes', 'No']
-       }
-     ]).then(answers => {
-       switch (answers.add) {
-         case 'Yes':
-           if (tableName==="role"){
-             addRoles();
-           } else if (tableName==="department"){
-             addDepts();
-           } else {
-             addEmployees();
-           };
-           break;
-         case 'No':
-           initialPrompts();
-           break;
-       }
-     })
-   } else {
-   connection.query("SELECT * FROM "+ tableName +"",
-     (err, viewData) => {
-       if (err) throw err;
-       console.table(viewData);
-       initialPrompts();
+function view(tableName) {
+  connection.query('SELECT COUNT (*) as total FROM ' + tableName + "", (err, count) => {
+    if (err) throw err;
+    if (count[0].total === 0) {
+      console.log("There are no " + tableName + "s");
+      inquirer.prompt([
+        {
+          name: 'add',
+          type: 'list',
+          message: "Do you want to add a " + tableName + "?",
+          choices: ['Yes', 'No']
+        }
+      ]).then(answers => {
+        switch (answers.add) {
+          case 'Yes':
+            if (tableName === "role") {
+              addRoles();
+            } else if (tableName === "department") {
+              addDepts();
+            } else {
+              addEmployees();
+            };
+            break;
+          case 'No':
+            initialPrompts();
+            break;
+        }
+      })
+    } else {
+      connection.query("SELECT * FROM " + tableName + "",
+        (err, viewData) => {
+          if (err) throw err;
+          console.table(viewData);
+          initialPrompts();
+        }
+      )
     }
-   )
- }});
- };
+  });
+};
 
- function updEmpRoles() {
-  //  connection.query('select first_name, last_name from employee',(err, empchg)=>{
-  //    if (err) throw err;
-  //  })
-  inquirer.prompt([
-    {
-      name: 'emplchg',
-      type: 'list',
-      message: "Which Employee do you want to update?",
-      choices: ['Yes', 'No']
-    }]).then (answers=>{
-
-
-    });
-
-//  connection.query('select title from role',(err, rolechg)=>{
-  //    if (err) throw err;
-  //  })
+function updEmpRoles() {
+  connection.query('select first_name, last_name from employee', (err, empchg) => {
+    if (err) throw err;
 
     inquirer.prompt([
       {
-        name: "rolechg",
-        type: "list",
-        message: "Which Role are we changing to?",
-        choices: ['Yes','No']
-      }
-    ]).then (answers2 =>{
-      connection.query('UPDATE employee set title = where id = ',(err, update)=>{
-         if (err) throw err;
-      })
-    })
+        name: 'emplchg',
+        type: 'list',
+        message: "Which Employee do you want to update?",
+        choices: function () {
+          const choiceEmplArray = [];
+          for (let i = 0; i < empchg.length; i++) {
+            choiceEmplArray.push(empchg[i].first_name + " " + empchg[i].last_name)
+          }
+          return choiceEmplArray;
+        }
+      }]).then(answers => {
+        var arrayAnswers = answers.emplchg.split(" ");
+        for (let j = 0; j < arrayAnswers.length; j++) {
+          var firstName = arrayAnswers[0]
+          var lastName = arrayAnswers[1]
+        };
 
- };
+        connection.query("SELECT id FROM employee where first_name ='" + firstName + "' AND last_name ='" + lastName + "'", (err, findId) => {
+          if (err) throw err;
+          connection.query('SELECT title from role', (err, roleChange) => {
+            if (err) throw err
+
+            inquirer.prompt([
+              {
+                name: "rolechg",
+                type: "list",
+                message: "Which Role are we changing to?",
+                choices: function () {
+                  const choiceRoleArray = [];
+                  for (let i = 0; i < roleChange.length; i++) {
+                    choiceRoleArray.push(roleChange[i].title)
+                  }
+                  return choiceRoleArray;
+                }
+              }
+            ]).then(answers2 => {
+              connection.query("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'", (err, roleId) => {
+                if (err) throw err;
+
+                connection.query('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '', (err, update) => {
+                  if (err) throw err;
+                })
+
+              })
+            })
+          })
+        });
+
+
+      });
+  })
+};
 
