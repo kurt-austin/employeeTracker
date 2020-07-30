@@ -291,6 +291,8 @@ function view(tableName) {
   });
 };
 
+// Function Update Employee Roles.  Asking which Employee and then which Role.
+
 function updEmpRoles() {
   connection.query('select first_name, last_name from employee', (err, empchg) => {
     if (err) throw err;
@@ -313,7 +315,6 @@ function updEmpRoles() {
           var firstName = arrayAnswers[0]
           var lastName = arrayAnswers[1]
         };
-
         connection.query("SELECT id FROM employee where first_name ='" + firstName + "' AND last_name ='" + lastName + "'", (err, findId) => {
           if (err) throw err;
           connection.query('SELECT title from role', (err, roleChange) => {
@@ -332,19 +333,21 @@ function updEmpRoles() {
                   return choiceRoleArray;
                 }
               }
+              
             ]).then(answers2 => {
+              console.log("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'");
               connection.query("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'", (err, roleId) => {
                 if (err) throw err;
-
-                connection.query('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '', (err, update) => {
+                console.log('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '');
+                connection.query('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '', (err,update) => {
                   if (err) throw err;
+                  initialPrompts();
                 })
 
               })
             })
           })
         });
-
 
       });
   })
