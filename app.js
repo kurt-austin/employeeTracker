@@ -1,8 +1,10 @@
-// require Node packages MySQL and Inquirer
+// require Node packages MySQL, Inquirer, and Console Table
 
 const mysql = require('mysql')
 const inquirer = require('inquirer')
+const cTable = require('console.table');
 let tableName = ' ';
+let mgrFnd = ' ';
 
 // Establish Database Connection and test.
 
@@ -19,10 +21,6 @@ connection.connect(err => {
   console.log(`Connect on thread ${connection.threadId}`)
   initialPrompts()
 })
-
-
-//   * Update employee roles
-
 
 // Initial prompt of what the user wants to do
 
@@ -75,31 +73,24 @@ function initialPrompts() {
         process.exit()
     }
   })
-
 };
 
 // Add Departments.
-
 
 function addDepts() {
   inquirer.prompt([{
     message: 'Enter Department Name you want to add',
     name: 'newdept',
   }]).then(answers => {
-    console.log(answers);
-    console.log("'" + `${answers.newdept}` + "'")
-
     connection.query(
       "INSERT INTO department (name) values ('" + `${answers.newdept}` + "')",
       (err, newDeptRow) => {
-        console.log(newDeptRow);
         if (err) throw err;
         console.table(newDeptRow);
         initialPrompts();
       }
     )
   })
-
 };
 
 // Adding roles with checking to see if Departments exist first with the option of adding a Department.
@@ -129,7 +120,6 @@ function addRoles() {
     } else {
       connection.query("SELECT name FROM department", (err, deptName) => {
         if (err) throw err;
-
         inquirer.prompt([
           {
             name: 'title',
@@ -144,20 +134,20 @@ function addRoles() {
             name: 'name',
             type: 'list',
             choices: function () {
-              var choiceArray = [];
-              for (var i = 0; i < deptName.length; i++) {
-                choiceArray.push(deptName[i].name);
+              const choiceDeptArray = [];
+              for (let i = 0; i < deptName.length; i++) {
+                choiceDeptArray.push(deptName[i].name);
               }
-              return choiceArray
+              return choiceDeptArray
             },
             message: "What is the department this role belongs to?"
           }
         ]).then(answers => {
           connection.query("SELECT id from department WHERE name='" + `${answers.name}` + "'", (err, deptId) => {
             if (err) throw err;
-
             connection.query(
-              "INSERT INTO role (title,salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + deptId[0].id + "')",
+              
+              "INSERT INTO role (title, salary,department_id) values ('" + `${answers.title}` + "','" + `${answers.salary}` + "','" + deptId[0].id + "')",
               (err, newRoleRow) => {
                 if (err) throw err
                 console.table(newRoleRow)
@@ -176,19 +166,14 @@ function addRoles() {
 function addEmployees() {
   connection.query('SELECT COUNT (*) as total FROM role', (err, countRole) => {
     if (err) throw err;
-
-
-
     if (countRole[0].total === 0) {
       console.log("There are no Roles, please add Role first.")
-
       inquirer.prompt([
         {
           name: 'add_role',
           type: 'list',
           message: 'Do you want to add a Role?',
           choices: ['Yes', 'No']
-
         }
       ]).then(answers => {
         switch (answers.add_role) {
@@ -203,7 +188,10 @@ function addEmployees() {
     } else {
       connection.query("SELECT title FROM role", (err, title) => {
         if (err) throw err;
-
+      connection.query("SELECT id FROM role where title ='Manager'",(err, mgrId)=>{
+     
+        if (err) throw err;
+      
         inquirer.prompt([
           {
             name: 'first_name',
@@ -217,8 +205,8 @@ function addEmployees() {
             name: 'title',
             type: 'list',
             choices: function () {
-              var choiceArray = [];
-              for (var i = 0; i < title.length; i++) {
+              const choiceArray = [];
+              for (let i = 0; i < title.length; i++) {
                 choiceArray.push(title[i].title);
               }
               return choiceArray
@@ -228,14 +216,27 @@ function addEmployees() {
 
           {
             name: 'manager_id',
-            type: 'number',
-            message: "What is the Manager ID this role belongs to?",
+            type: 'list',
+            choices: function () {
+             const choiceMgrArray = ["None"];
+              
+               if (mgrId.length > 0){
+               for (let i = 0; i < mgrId.length; i++ ){
+                 choiceMgrArray.push(mgrId[i].id)
+               }
+              }
+               return choiceMgrArray;
+            },
+            message: "What Manager ID are we assiging this employee to?"
           }
         ]).then(answers => {
           connection.query("SELECT id from role WHERE title='" + `${answers.title}` + "'", (err, roleId) => {
             if (err) throw err;
+            if (answers.manager_id === "None"){
+              answers.manager_id = null
+            }
             connection.query(
-              "INSERT INTO employee (first_name,last_name,role_id,manager_id) values ('" + `${answers.first_name}` + "','" + `${answers.last_name}` + "','" + roleId[0].id + "','" + `${answers.manager_id}` + "')",
+              "INSERT INTO employee (first_name,last_name,role_id,manager_id) values ('" + `${answers.first_name}` + "','" + `${answers.last_name}` + "','" + roleId[0].id + "'," + `${answers.manager_id}` + ")",
               (err, newEmplRow) => {
                 if (err) throw err
                 console.table(newEmplRow)
@@ -245,7 +246,9 @@ function addEmployees() {
           });
         })
       })
+      })
     }
+  
   });
 };
 
@@ -294,9 +297,17 @@ function view(tableName) {
 // Function Update Employee Roles.  Asking which Employee and then which Role.
 
 function updEmpRoles() {
+  connection.query('SELECT COUNT (*) AS total from employee',(err, countUpdEmpl)=>{
+     if (err) throw err;
+     console.log("here");
+     console.log(countUpdEmpl[0]);
+     if (countUpdEmpl[0].total===0){
+       console.log("There are no employees, please choose another option");
+       initialPrompts();
+     } else {
+  
   connection.query('select first_name, last_name from employee', (err, empchg) => {
     if (err) throw err;
-
     inquirer.prompt([
       {
         name: 'emplchg',
@@ -319,7 +330,6 @@ function updEmpRoles() {
           if (err) throw err;
           connection.query('SELECT title from role', (err, roleChange) => {
             if (err) throw err
-
             inquirer.prompt([
               {
                 name: "rolechg",
@@ -333,7 +343,6 @@ function updEmpRoles() {
                   return choiceRoleArray;
                 }
               }
-              
             ]).then(answers2 => {
               console.log("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'");
               connection.query("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'", (err, roleId) => {
@@ -343,13 +352,13 @@ function updEmpRoles() {
                   if (err) throw err;
                   initialPrompts();
                 })
-
               })
             })
           })
         });
-
       });
   })
+}
+})
 };
 
