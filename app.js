@@ -299,8 +299,6 @@ function view(tableName) {
 function updEmpRoles() {
   connection.query('SELECT COUNT (*) AS total from employee',(err, countUpdEmpl)=>{
      if (err) throw err;
-     console.log("here");
-     console.log(countUpdEmpl[0]);
      if (countUpdEmpl[0].total===0){
        console.log("There are no employees, please choose another option");
        initialPrompts();
@@ -344,10 +342,8 @@ function updEmpRoles() {
                 }
               }
             ]).then(answers2 => {
-              console.log("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'");
               connection.query("SELECT id FROM role WHERE title ='" + answers2.rolechg + "'", (err, roleId) => {
                 if (err) throw err;
-                console.log('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '');
                 connection.query('UPDATE employee set role_id =' + roleId[0].id + ' where id = ' + findId[0].id + '', (err,update) => {
                   if (err) throw err;
                   initialPrompts();
